@@ -116,7 +116,7 @@ end
 function ErrorHandler:keypressed(key)
     if key == "escape" then
         love.event.quit("reload")
-    elseif key == "c" and (love.keyboard.isDown("ctrl") or love.keyboard.isDown("ctrl")) then
+    elseif key == "c" and (love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")) then
     else
         -- Kristal.DebugSystem:onKeyPressed(key, false)
     end
