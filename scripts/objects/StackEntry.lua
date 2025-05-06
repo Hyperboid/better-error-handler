@@ -6,14 +6,23 @@
 local stackentry = Class()
 
 stackentry.__tostring = function (self)
-    return self:getShortSrc()..": in function "..(self.info.name or (
+    return self:getSrc()..": in function "..(self.info.name or (
         "<"..self.info.short_src..":"..self.info.linedefined..">"
     ))
 end
 
-function stackentry:getShortSrc()
+function stackentry:getSrc()
     if self.info.currentline == -1 then return self.info.short_src end
-    return self.info.short_src..":"..self.info.currentline
+    return self:getFilePath()..":"..self.info.currentline
+end
+
+function stackentry:getFilePath()
+    if self.info.currentline == -1 then return self.info.short_src end
+    local src = self.info.source
+    if src[1] == "=" or src[1] == "@" then
+        src = Utils.sub(src, 2)
+    end
+    return src
 end
 
 function stackentry:init(info)
@@ -42,7 +51,7 @@ function stackentry:draw()
     Draw.setColor(COLORS.white)
     love.graphics.translate(20,0)
     love.graphics.print(self:__tostring())
-    local w = Assets.getFont("main_mono", 16):getWidth(self:getShortSrc())
+    local w = Assets.getFont("main_mono", 16):getWidth(self:getSrc())
     if self.info.short_src[1] ~= "[" and CollisionUtil.rectPoint(16, 0, w, 16, x, y) then
         love.graphics.setLineWidth(2)
         love.graphics.line(-1,16,w+1,16)
@@ -71,10 +80,12 @@ function stackentry:onClick(x,y, button)
     if button == 1 then
         if CollisionUtil.rectPoint(0, 0, 16, 16, x, y) then
             self.open = not self.open and (next(self.locals) ~= nil)
-        elseif CollisionUtil.rectPoint(16, 0, Assets.getFont("main_mono", 16):getWidth(self:getShortSrc()), 16, x, y) then
-            if love.filesystem.getRealDirectory(self.info.short_src) then
-                local full_path = love.filesystem.getRealDirectory(self.info.short_src) .. "/" .. self.info.short_src
+        elseif CollisionUtil.rectPoint(16, 0, Assets.getFont("main_mono", 16):getWidth(self:getSrc()), 16, x, y) then
+            if love.filesystem.getRealDirectory(self:getFilePath()) then
+                local full_path = love.filesystem.getRealDirectory(self:getFilePath()) .. "/" .. self:getFilePath()
+                print(full_path)
                 local uri = "vscode://file"..full_path..":"..self.info.currentline..":0"
+                print(uri)
                 -- TODO: Convince love.system.openURL("vscode://file"..full_path) to actually work
                 os.execute("code --open-url \""..uri.."\"")
             end
