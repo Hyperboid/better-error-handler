@@ -47,6 +47,25 @@ end
 function ErrorHandler:load(msg)
     self.traceback = self.getTraceback()
     CRASH_TRACEBACK = self.traceback
+    -- Reset state.
+    if love.mouse then
+        love.mouse.setVisible(true)
+        love.mouse.setGrabbed(false)
+        love.mouse.setRelativeMode(false)
+        if love.mouse.isCursorSupported() then
+            love.mouse.setCursor()
+        end
+    end
+    if love.joystick then
+        -- Stop all joystick vibrations.
+        for i,v in ipairs(love.joystick.getJoysticks()) do
+            v:setVibration()
+        end
+    end
+    if love.audio then love.audio.stop() end
+    love.graphics.reset()
+    love.graphics.setCanvas()
+
     print("Error: "..debug.traceback(msg or 2, msg and 2 or nil))
     if Input then Input.clear(nil, true) end
     self.msg = msg
