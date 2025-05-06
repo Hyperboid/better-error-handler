@@ -44,7 +44,8 @@ function stackentry:draw()
     love.graphics.print(self:__tostring())
     local w = Assets.getFont("main_mono", 16):getWidth(self:getShortSrc())
     if self.info.short_src[1] ~= "[" and CollisionUtil.rectPoint(16, 0, w, 16, x, y) then
-        love.graphics.line(0,16,w,16)
+        love.graphics.setLineWidth(2)
+        love.graphics.line(-1,16,w+1,16)
     end
 
 
