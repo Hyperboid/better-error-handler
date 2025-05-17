@@ -9,6 +9,33 @@ function lib:onRegisterObjects()
         if type(msg) == "table" then return orig(msg) end
         return ErrorHandler():run(msg)
     end)
+    Utils.hook(Cutscene, "resume", function(orig, self, ...)
+        self.paused = false
+        self.wait_func = nil
+        local ok, msg = coroutine.resume(self.coroutine, ...)
+        if not ok then
+            COROUTINE_TRACEBACK = debug.traceback(self.coroutine)
+            FAILED_COROUTINE = self.coroutine
+            error(msg)
+        end
+    end)
+    Utils.hook(Timer, "script", function (orig, f)
+        local container = { handle = nil }
+        local thread = coroutine.create(f)
+        local co = function (...)
+            local ok, msg = coroutine.resume(thread, ...)
+            if not ok then
+                COROUTINE_TRACEBACK = debug.traceback(thread)
+                FAILED_COROUTINE = thread
+                error(msg)
+            end
+        end
+        co(function(t)
+            container.handle = self:after(t or 0, co)
+            coroutine.yield()
+        end)
+        return container
+    end)
 end
 
 function lib.isArray(tbl)

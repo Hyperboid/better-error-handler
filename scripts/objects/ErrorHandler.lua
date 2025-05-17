@@ -14,19 +14,34 @@ local hump_path = stripTo(path, ".").. ".hump"
 ---@overload fun() : ErrorHandler
 local ErrorHandler, super = Class("Subsystem")
 
-function ErrorHandler.getTraceback(stack_depth)
+---@param thread thread?
+function ErrorHandler.getTraceback(stack_depth, thread)
     local traceback = {}
     stack_depth = stack_depth or 3 -- Start at 3 to skip the error handler itself
     while stack_depth < 1000 do
         stack_depth = stack_depth + 1
         -- local stackentry = setmetatable({info = debug.getinfo(stack_depth), locals = {}}, stackentry_mt)
-        local stackentry = StackEntry(debug.getinfo(stack_depth))
+        local stackentry
+        if thread then
+            stackentry = StackEntry(debug.getinfo(thread, stack_depth))
+        else
+            stackentry = StackEntry(debug.getinfo(stack_depth))
+        end
         if not stackentry.info then break end
         local local_index = 0
         -- It's incredibly unlikely, albeit technically possible, to have more than 1000 locals. You'd need about 6 levels of do...end.
         while local_index < 1000 do
             local_index = local_index + 1
-            local name, val = debug.getlocal(stack_depth, local_index)
+            local name, val
+            if thread then
+                print(stack_depth)
+                if not pcall(debug.getlocal, thread, stack_depth, local_index) then
+                    break
+                end
+                name, val = debug.getlocal(thread, stack_depth, local_index)
+            else
+                name, val = debug.getlocal(stack_depth, local_index)
+            end
             if not name then break end
             if stackentry.locals[name] == nil then
                 stackentry.locals[name] = val
@@ -46,8 +61,17 @@ end
 
 function ErrorHandler:load(msg)
     self.traceback = self.getTraceback()
-    if COROUTINE_TRACEBACK then
-        table.insert(self.traceback, 1, ErrorHandlerText(COROUTINE_TRACEBACK))
+    if FAILED_COROUTINE then
+        local thread = FAILED_COROUTINE
+        FAILED_COROUTINE = nil
+        local ok, tb = pcall(self.getTraceback, -1, thread)
+        if not ok then
+            print(tb)
+            love.timer.sleep(3)
+        end
+        self.traceback = Utils.mergeMultiple({ErrorHandlerText("Coroutine Traceback")}, tb, {ErrorHandlerText(""), ErrorHandlerText("Main Traceback")}, self.traceback)
+    elseif COROUTINE_TRACEBACK then
+        table.insert(self.traceback, 1, ErrorHandlerText("Coroutine Traceback:\n"..COROUTINE_TRACEBACK))
     end
     CRASH_TRACEBACK = self.traceback
     -- Reset state.

@@ -9,26 +9,12 @@ ErrorHandlerText.__tostring = function (self)
     return self.text
 end
 
-function ErrorHandlerText:getSrc()
-    if self.info.currentline == -1 then return self.info.short_src end
-    return self:getFilePath()..":"..self.info.currentline
-end
-
-function ErrorHandlerText:getFilePath()
-    if self.info.currentline == -1 then return self.info.short_src end
-    local src = self.info.source
-    if src[1] == "=" or src[1] == "@" then
-        src = Utils.sub(src, 2)
-    end
-    return src
-end
-
 function ErrorHandlerText:init(text)
     self.lines = Utils.split(text, "\n")
     self.heading = table.remove(self.lines, 1)
     self.sprite = Assets.getTexture("ui/errorhandler/arrow_right") or Assets.getTexture("ui/flat_arrow_right")
     self.text = table.concat(self.lines, "\n")
-    self.open = true
+    self.open = (#self.lines > 0)
 end
 
 function ErrorHandlerText:draw()
@@ -36,12 +22,12 @@ function ErrorHandlerText:draw()
     love.graphics.push()
     self.transform = love.graphics.getTransformRef()
     local x, y = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-    -- if next(self.locals) ~= nil then
+    if #self.lines > 0 then
         if CollisionUtil.rectPoint(0, 0, 16, 16, x, y) then
             Draw.setColor(COLORS.yellow)
         end
         Draw.draw(self.sprite, 6+3, 6+2, self.open and (math.pi/2) or 0, 1, 1, 6, 6)
-    -- end
+    end
     Draw.setColor(COLORS.white)
     love.graphics.translate(20,0)
     love.graphics.print(self.heading)
@@ -64,7 +50,7 @@ end
 function ErrorHandlerText:onClick(x,y, button)
     if button == 1 then
         if CollisionUtil.rectPoint(0, 0, 16, 16, x, y) then
-            self.open = not self.open
+            self.open = not self.open and (#self.lines > 0)
         end
     end
 end
