@@ -30,6 +30,10 @@ function ErrorHandlerText:draw()
     end
     Draw.setColor(COLORS.white)
     love.graphics.translate(20,0)
+    if #self.lines == 0 then
+        love.graphics.scale(2)
+        love.graphics.translate(0,8)
+    end
     love.graphics.print(self.heading)
 
     love.graphics.translate(0,0)
@@ -41,6 +45,9 @@ function ErrorHandlerText:draw()
 end
 
 function ErrorHandlerText:getHeight()
+    if #self.lines == 0 then
+        return 45
+    end
     if self.open then
         return 20 + (13 * (#self.lines + 0.5))
     end

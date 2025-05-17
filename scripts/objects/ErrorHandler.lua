@@ -69,7 +69,7 @@ function ErrorHandler:load(msg)
             print(tb)
             love.timer.sleep(3)
         end
-        self.traceback = Utils.mergeMultiple({ErrorHandlerText("Coroutine Traceback")}, tb, {ErrorHandlerText(""), ErrorHandlerText("Main Traceback")}, self.traceback)
+        self.traceback = Utils.mergeMultiple({ErrorHandlerText("Coroutine Traceback")}, tb, {ErrorHandlerText("Main Traceback")}, self.traceback)
     elseif COROUTINE_TRACEBACK then
         table.insert(self.traceback, 1, ErrorHandlerText("Coroutine Traceback:\n"..COROUTINE_TRACEBACK))
     end
