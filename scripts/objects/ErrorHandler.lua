@@ -46,6 +46,9 @@ end
 
 function ErrorHandler:load(msg)
     self.traceback = self.getTraceback()
+    if COROUTINE_TRACEBACK then
+        table.insert(self.traceback, 1, ErrorHandlerText(COROUTINE_TRACEBACK))
+    end
     CRASH_TRACEBACK = self.traceback
     -- Reset state.
     if love.mouse then

@@ -28,7 +28,7 @@ end
 function stackentry:init(info)
     self.info, self.locals = info, {}
     self.open = false
-    self.sprite = Assets.getTexture("ui/errorhandler/arrow_right")
+    self.sprite = Assets.getTexture("ui/errorhandler/arrow_right") or Assets.getTexture("ui/flat_arrow_right")
 end
 
 function stackentry:postInit()
