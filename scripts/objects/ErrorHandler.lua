@@ -69,9 +69,21 @@ function ErrorHandler:load(msg)
             print(tb)
             love.timer.sleep(3)
         end
-        self.traceback = Utils.mergeMultiple({ErrorHandlerText("Coroutine Traceback")}, tb, {ErrorHandlerText("Main Traceback")}, self.traceback)
+        self.traceback = Utils.mergeMultiple(
+            {ErrorHandlerText("Coroutine Traceback")},
+            tb,
+            {ErrorHandlerText("Main Traceback")},
+            self.traceback
+        )
     elseif COROUTINE_TRACEBACK then
-        table.insert(self.traceback, 1, ErrorHandlerText("Coroutine Traceback:\n"..COROUTINE_TRACEBACK))
+        table.insert(
+            self.traceback, 1,
+            ErrorHandlerText("Coroutine Traceback (rich traceback unavailable):\n"..COROUTINE_TRACEBACK)
+        )
+        table.insert(
+            self.traceback, 2,
+            ErrorHandlerText("Main Traceback:")
+        )
     end
     CRASH_TRACEBACK = self.traceback
     -- Reset state.
